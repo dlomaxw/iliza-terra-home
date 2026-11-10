@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0b3a6e;
+  --color-navy-dark: #072849;
+  --color-sky: #0f8fd6;
+  --color-sky-light: #e6f4fc;
+  --color-green: #5a9e1a;
+  --color-green-dark: #3f7a0e;
+  --color-green-light: #eef7e4;
+  --color-orange: #ef9a2a;
+  --color-orange-dark: #c96d07;
+  --color-orange-light: #fff4e5;
+  --color-ink: #13233a;
+  --color-muted: #5b6b80;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { color: var(--color-ink); background: #fff; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-serif); }
+}
+
+@utility container-x { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;  }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60;  }
+@utility btn-primary { @apply btn bg-orange text-navy-dark hover:bg-[#f5ab48] focus-visible:outline-orange;  }
+@utility btn-green { @apply btn bg-green text-white hover:bg-green-dark focus-visible:outline-green;  }
+@utility btn-outline { @apply btn border-2 border-white/80 text-white hover:bg-white hover:text-navy;  }
+@utility btn-ghost { @apply btn border border-navy/20 text-navy hover:border-navy hover:bg-navy hover:text-white;  }
+@utility eyebrow { @apply text-xs font-bold uppercase tracking-[0.18em] text-green;  }
+@utility section-title { @apply font-serif text-3xl font-bold text-navy sm:text-4xl;  }
+@utility card { @apply rounded-2xl border border-slate-200 bg-white shadow-sm;  }
+@utility input { @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-slate-400 focus:border-sky focus:ring-2 focus:ring-sky/20 focus:outline-none;  }
+@utility label { @apply mb-1.5 block text-sm font-medium text-ink;  }
+@utility prose-iliza { @apply text-[1.0625rem] leading-relaxed text-slate-700; 
+  & h2 { @apply mt-10 mb-3 text-2xl font-bold text-navy;  }
+  & h3 { @apply mt-8 mb-2 text-xl font-bold text-navy;  }
+  & p { @apply my-4;  }
+  & ul { @apply my-4 list-disc space-y-1.5 pl-6;  }
+  & ol { @apply my-4 list-decimal space-y-1.5 pl-6;  }
+  & a { @apply font-medium text-sky underline underline-offset-2;  }
+  & strong { @apply text-ink;  }
+  & em { @apply text-muted;  }
+  & blockquote { @apply my-6 border-l-4 border-green pl-4 italic;  }
+  & img { @apply my-6 rounded-xl;  }
+}
+
+.brand-gradient { background: linear-gradient(135deg, var(--color-navy-dark) 0%, var(--color-navy) 55%, #0d5a8f 100%); }
+.wave-divider { background: linear-gradient(90deg, var(--color-green), var(--color-sky), var(--color-orange)); height: 4px; }
