@@ -7,8 +7,6 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { PageHero, CtaBand } from "@/components/Bits";
 
 type P = { params: Promise<{ slug: string }> };
-export function generateStaticParams() { return LOCATIONS.map((l) => ({ slug: l.slug })); }
-export const revalidate = 300;
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const slug = (await params).slug;

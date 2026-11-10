@@ -11,7 +11,6 @@ import { JsonLd } from "@/components/JsonLd";
 import { absUrl } from "@/lib/format";
 
 type P = { params: Promise<{ slug: string }> };
-export function generateStaticParams() { return SERVICES.map((s) => ({ slug: s.slug })); }
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const slug = (await params).slug;

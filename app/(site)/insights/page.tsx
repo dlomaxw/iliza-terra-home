@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description: "Practical guides and market insights on buying property, land, building and investing in Rwanda, for local, diaspora and international investors.",
   alternates: { canonical: "/insights" },
 };
-export const revalidate = 300;
 
 export default async function InsightsPage() {
   const posts = await listPosts();

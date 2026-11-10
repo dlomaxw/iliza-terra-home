@@ -7,6 +7,8 @@ import "./globals.css";
 import { getSettings } from "@/lib/data";
 import { siteUrl } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 export const viewport: Viewport = { themeColor: "#0b3a6e", width: "device-width", initialScale: 1 };
 
 export async function generateMetadata(): Promise<Metadata> {

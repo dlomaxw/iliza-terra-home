@@ -9,7 +9,6 @@ import { JsonLd } from "@/components/JsonLd";
 import Link from "next/link";
 
 type P = { params: Promise<{ slug: string }> };
-export const revalidate = 300;
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const p = await getPost((await params).slug);

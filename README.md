@@ -2,7 +2,9 @@
 
 A real-estate, land, insurance and investment website for **Iliza Terra Homes (Kigali, Rwanda)**. It has a full admin dashboard and Rwanda-focused SEO.
 
-Built with Next.js 16, React 19, Tailwind CSS 4 and Postgres (Vercel / Neon). Brand colours (green, orange, blue and white) and the logo come from the company flyer.
+Built with Next.js 16, React 19 and Tailwind CSS 4. Hosted on **Cloudflare Workers**, with a **D1** database and **R2** photo storage.
+
+**Live:** https://iliza-terra-homes.despotic62.workers.dev Brand colours (green, orange, blue and white) and the logo come from the company flyer.
 
 ---
 
@@ -47,8 +49,9 @@ Also included: a floating WhatsApp button, opportunity-alert newsletter signup, 
 
 ```bash
 npm install
-cp .env.example .env.local     # then edit the values
-npm run dev                    # needs DATABASE_URL pointing to a Postgres database
+cp .env.example .dev.vars      # then edit the values
+npm run db:migrate:local       # create the local D1 tables
+npm run preview                # http://localhost:8787 (Cloudflare runtime)
 ```
 
 On first start the app creates the database, the first admin account (from `ADMIN_EMAIL` / `ADMIN_PASSWORD`), 8 sample listings and 3 articles.
@@ -58,21 +61,26 @@ On first start the app creates the database, the first admin account (from `ADMI
 
 ## Deploy
 
-### Option A — Vercel + Vercel Postgres (Neon) — current setup
-1. Import the GitHub repository into Vercel.
-2. In the project's **Storage** tab, create or connect a Postgres database (Neon or Prisma Postgres). This sets `DATABASE_URL` / `POSTGRES_URL` automatically.
-3. Add these environment variables: `SITE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `SESSION_SECRET`.
-4. Optional: create a **Blob** store in Storage for photos (it sets `BLOB_READ_WRITE_TOKEN`). Without it, photos are stored in the database.
-5. Deploy. The tables, the first admin account and the sample content are created automatically on the first request.
+### Cloudflare (current setup)
+| Resource | Name |
+|---|---|
+| Worker | `iliza-terra-homes` |
+| D1 database | `iliza-terra-homes-db` (binding `DB`) |
+| R2 bucket | `iliza-terra-homes-media` (binding `MEDIA`), photos served at `/media/...` |
+| Variables | `SITE_URL`, `ADMIN_EMAIL` (in `wrangler.jsonc`) |
+| Secrets | `ADMIN_PASSWORD`, `SESSION_SECRET` (set with `wrangler secret put`) |
 
-### Option B — Any Node.js host / VPS
-Point `DATABASE_URL` at any Postgres 13+ database, then run:
+To deploy changes, set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, then run:
 ```bash
-npm install && npm run build && npm start
+npm run db:migrate   # only when there are new files in migrations/
+npm run deploy
 ```
+Photos are resized to WebP in the browser before upload, so uploads stay small.
+
+**Custom domain:** add the domain to Cloudflare, open Workers & Pages → `iliza-terra-homes` → Settings → Domains & Routes → Add custom domain, then change `SITE_URL` in `wrangler.jsonc` and redeploy.
 
 ### Optional: enquiry emails
-Add `RESEND_API_KEY` (from resend.com) and `NOTIFY_FROM`. Each new enquiry will then be emailed to the address set in **Site settings**.
+Add `RESEND_API_KEY` (from resend.com) as a Worker secret and `NOTIFY_FROM` as a variable. Each new enquiry will then be emailed to the address set in **Site settings**.
 
 ---
 

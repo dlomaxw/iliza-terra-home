@@ -1,21 +1,25 @@
 import "server-only";
-import sharp from "sharp";
-import { run } from "./db";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-/** Resize, convert to WebP and store an uploaded image. Returns a public URL. */
+type R2 = {
+  put(key: string, value: ArrayBuffer, opts?: { httpMetadata?: { contentType?: string; cacheControl?: string } }): Promise<unknown>;
+};
+
+const MAX = 10 * 1024 * 1024;
+
+/** Store an uploaded image in Cloudflare R2 and return its public URL on this site. */
 export async function saveImage(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Only image files can be uploaded.");
-  const input = Buffer.from(await file.arrayBuffer());
-  const out = await sharp(input).rotate().resize({ width: 1800, height: 1800, fit: "inside", withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
-
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const { put } = await import("@vercel/blob");
-    const name = file.name.replace(/\.[^.]+$/, "").replace(/[^a-z0-9-]+/gi, "-").toLowerCase().slice(0, 50) || "image";
-    const blob = await put(`properties/${name}.webp`, out, { access: "public", contentType: "image/webp", addRandomSuffix: true });
-    return blob.url;
-  }
-  const r = await run("INSERT INTO media (mime, data) VALUES (?, ?) RETURNING id", ["image/webp", out]);
-  return `/media/${r.id}`;
+  if (file.size > MAX) throw new Error(`"${file.name}" is larger than 10 MB. Please use a smaller photo.`);
+  const env = getCloudflareContext().env as unknown as { MEDIA?: R2 };
+  if (!env.MEDIA) throw new Error("R2 binding MEDIA is missing (see wrangler.jsonc).");
+  const ext = file.type === "image/webp" ? "webp" : file.type === "image/png" ? "png" : file.type === "image/gif" ? "gif" : "jpg";
+  const base = file.name.replace(/\.[^.]+$/, "").replace(/[^a-z0-9-]+/gi, "-").toLowerCase().slice(0, 40) || "image";
+  const key = `uploads/${new Date().toISOString().slice(0, 7)}/${base}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  await env.MEDIA.put(key, await file.arrayBuffer(), {
+    httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" },
+  });
+  return `/media/${key}`;
 }
 
 export async function saveImages(files: File[]) {

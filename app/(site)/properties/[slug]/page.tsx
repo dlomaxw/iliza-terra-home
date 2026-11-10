@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
 export default async function PropertyPage({ params }: P) {
   const p = await getProperty((await params).slug);
   if (!p) notFound();
-  run("UPDATE properties SET views = views + 1 WHERE id = ?", [p.id]).catch(() => {});
+  await run("UPDATE properties SET views = views + 1 WHERE id = ?", [p.id]).catch(() => {});
   const [s, similar] = await Promise.all([getSettings(), similarProperties(p)]);
   const images = parseImages(p.images);
   const features = splitList(p.features);

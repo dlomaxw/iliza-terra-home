@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [{ protocol: "https", hostname: "**.public.blob.vercel-storage.com" }],
-  },
+  // Photos are compressed in the browser before upload and served from R2.
+  images: { unoptimized: true },
   experimental: { serverActions: { bodySizeLimit: "25mb" } },
   async headers() {
     return [
@@ -19,3 +19,6 @@ const nextConfig: NextConfig = {
   },
 };
 export default nextConfig;
+
+// Gives `next dev` access to the D1 / R2 bindings in wrangler.jsonc.
+initOpenNextCloudflareForDev();

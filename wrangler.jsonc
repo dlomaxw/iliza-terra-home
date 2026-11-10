@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "iliza-terra-homes",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "iliza-terra-homes-db",
+      "database_id": "b94a558e-b9c7-45ec-957d-07954a48fcd4",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "iliza-terra-homes-media" }],
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "iliza-terra-homes" }],
+  "vars": {
+    "SITE_URL": "https://iliza-terra-homes.despotic62.workers.dev",
+    "ADMIN_EMAIL": "ilizaterrahomes@gmail.com"
+  }
+}

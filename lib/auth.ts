@@ -2,7 +2,8 @@ import "server-only";
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import bcrypt from "bcryptjs";
+import { verifyPassword } from "./password";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { q1 } from "./db";
 import type { User } from "./types";
 
@@ -10,7 +11,7 @@ const COOKIE = "itl_session";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function secret() {
-  const s = process.env.SESSION_SECRET;
+  const s = process.env.SESSION_SECRET || (getCloudflareContext().env as unknown as Record<string, string | undefined>).SESSION_SECRET;
   if (!s || s.length < 16) {
     if (process.env.NODE_ENV === "production") throw new Error("SESSION_SECRET must be set (32+ random characters).");
     return "dev-only-insecure-secret-change-me";
@@ -65,7 +66,7 @@ export async function verifyLogin(email: string, password: string) {
   const a = attempts.get(key);
   if (a && a.n >= 5 && Date.now() < a.until) return { error: "Too many attempts. Try again in 15 minutes." } as const;
   const row = await q1<User & { password_hash: string }>("SELECT * FROM users WHERE email = ?", [key]);
-  if (!row || !bcrypt.compareSync(password, row.password_hash)) {
+  if (!row || !(await verifyPassword(password, row.password_hash))) {
     const n = (a && Date.now() < a.until ? a.n : 0) + 1;
     attempts.set(key, { n, until: Date.now() + 15 * 60 * 1000 });
     return { error: "Incorrect email or password." } as const;

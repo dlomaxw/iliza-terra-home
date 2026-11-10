@@ -9,7 +9,6 @@ import { Icon } from "@/components/Icon";
 import { CtaBand, SectionHead } from "@/components/Bits";
 import { formatDate } from "@/lib/format";
 
-export const revalidate = 300;
 
 export default async function Home() {
   const [s, props, posts] = await Promise.all([getSettings(), featuredProperties(6), listPosts(3)]);

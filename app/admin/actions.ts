@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcryptjs";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { run, q1 } from "@/lib/db";
 import { createSession, destroySession, requireUser, requireAdmin, verifyLogin } from "@/lib/auth";
 import { saveImage, saveImages } from "@/lib/media";
@@ -63,7 +63,7 @@ export async function saveProperty(_: AState, f: FormData): Promise<AState> {
   const cols = "title, slug, listing_type, category, district, area, price, currency, price_period, bedrooms, bathrooms, size_sqm, plot_sqm, upi, description, features, images, video_url, lat, lng, featured, status, meta_title, meta_description";
   let newId = id;
   if (id) {
-    await run(`UPDATE properties SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, is_sample = 0, updated_at = now_txt() WHERE id = ?`, [...vals, id]);
+    await run(`UPDATE properties SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, is_sample = 0, updated_at = datetime('now') WHERE id = ?`, [...vals, id]);
   } else {
     const r = await run(`INSERT INTO properties (${cols}) VALUES (${cols.split(", ").map(() => "?").join(",")}) RETURNING id`, vals);
     newId = r.id;
@@ -83,7 +83,7 @@ export async function quickPropertyStatus(f: FormData) {
   await requireUser();
   const field = str(f, "field");
   if (field === "featured") await run("UPDATE properties SET featured = 1 - featured WHERE id = ?", [Number(f.get("id"))]);
-  if (field === "status") await run("UPDATE properties SET status = ?, updated_at = now_txt() WHERE id = ?", [str(f, "value"), Number(f.get("id"))]);
+  if (field === "status") await run("UPDATE properties SET status = ?, updated_at = datetime('now') WHERE id = ?", [str(f, "value"), Number(f.get("id"))]);
   refreshPublic();
   revalidatePath("/admin/properties");
 }
@@ -104,7 +104,7 @@ export async function savePost(_: AState, f: FormData): Promise<AState> {
   const vals = [title, slug, str(f, "excerpt"), str(f, "content"), cover, str(f, "category") || "Guides", str(f, "status") || "published", str(f, "meta_title"), str(f, "meta_description")];
   let newId = id;
   if (id) {
-    await run("UPDATE posts SET title=?, slug=?, excerpt=?, content=?, cover=?, category=?, status=?, meta_title=?, meta_description=?, is_sample=0, updated_at=now_txt() WHERE id=?", [...vals, id]);
+    await run("UPDATE posts SET title=?, slug=?, excerpt=?, content=?, cover=?, category=?, status=?, meta_title=?, meta_description=?, is_sample=0, updated_at=datetime('now') WHERE id=?", [...vals, id]);
   } else {
     const r = await run("INSERT INTO posts (title, slug, excerpt, content, cover, category, status, meta_title, meta_description) VALUES (?,?,?,?,?,?,?,?,?) RETURNING id", vals);
     newId = r.id;
@@ -156,7 +156,7 @@ export async function addUser(_: AState, f: FormData): Promise<AState> {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Enter a valid email." };
   if (pass.length < 8) return { error: "Password must be at least 8 characters." };
   if (await q1("SELECT id FROM users WHERE email = ?", [email])) return { error: "A user with that email already exists." };
-  await run("INSERT INTO users (email, name, password_hash, role) VALUES (?,?,?,?)", [email, str(f, "name"), bcrypt.hashSync(pass, 10), str(f, "role") === "admin" ? "admin" : "editor"]);
+  await run("INSERT INTO users (email, name, password_hash, role) VALUES (?,?,?,?)", [email, str(f, "name"), await hashPassword(pass), str(f, "role") === "admin" ? "admin" : "editor"]);
   revalidatePath("/admin/users");
   return { ok: `User ${email} added.` };
 }
@@ -169,10 +169,10 @@ export async function deleteUser(f: FormData) {
 export async function changePassword(_: AState, f: FormData): Promise<AState> {
   const me = await requireUser();
   const row = await q1<{ password_hash: string }>("SELECT password_hash FROM users WHERE id = ?", [me.id]);
-  if (!row || !bcrypt.compareSync(str(f, "current"), row.password_hash)) return { error: "Current password is incorrect." };
+  if (!row || !(await verifyPassword(str(f, "current"), row.password_hash))) return { error: "Current password is incorrect." };
   const next = str(f, "next");
   if (next.length < 8) return { error: "New password must be at least 8 characters." };
   if (next !== str(f, "confirm")) return { error: "New passwords do not match." };
-  await run("UPDATE users SET password_hash = ?, name = ? WHERE id = ?", [bcrypt.hashSync(next, 10), str(f, "name") || me.name, me.id]);
+  await run("UPDATE users SET password_hash = ?, name = ? WHERE id = ?", [await hashPassword(next), str(f, "name") || me.name, me.id]);
   return { ok: "Password updated." };
 }

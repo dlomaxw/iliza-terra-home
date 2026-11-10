@@ -3,7 +3,8 @@ import { q } from "@/lib/db";
 import { SERVICES, LOCATIONS, CATEGORIES, LISTING_TYPES } from "@/lib/content";
 import { siteUrl } from "@/lib/format";
 
-export const revalidate = 3600;
+
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();

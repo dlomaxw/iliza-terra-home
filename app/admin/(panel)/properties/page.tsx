@@ -12,7 +12,7 @@ export default async function AdminProperties({ searchParams }: { searchParams: 
   const sp = await searchParams;
   const where: string[] = []; const args: string[] = [];
   if (sp.status) { where.push("status = ?"); args.push(sp.status); }
-  if (sp.q) { where.push("(title ILIKE ? OR area ILIKE ? OR district ILIKE ?)"); args.push(`%${sp.q}%`, `%${sp.q}%`, `%${sp.q}%`); }
+  if (sp.q) { where.push("(title LIKE ? OR area LIKE ? OR district LIKE ?)"); args.push(`%${sp.q}%`, `%${sp.q}%`, `%${sp.q}%`); }
   const rows = await q<Property>(`SELECT * FROM properties ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY updated_at DESC`, args);
   return (
     <>
