@@ -11,7 +11,7 @@ export default async function AdminInquiries({ searchParams }: { searchParams: P
   const sp = await searchParams;
   const where: string[] = []; const args: string[] = [];
   if (sp.status) { where.push("i.status = ?"); args.push(sp.status); }
-  if (sp.q) { where.push("(i.name LIKE ? OR i.email LIKE ? OR i.phone LIKE ? OR i.message LIKE ?)"); args.push(...Array(4).fill(`%${sp.q}%`)); }
+  if (sp.q) { where.push("(i.name ILIKE ? OR i.email ILIKE ? OR i.phone ILIKE ? OR i.message ILIKE ?)"); args.push(...Array(4).fill(`%${sp.q}%`)); }
   const rows = await q<Inquiry>(`SELECT i.*, p.title AS property_title FROM inquiries i LEFT JOIN properties p ON p.id = i.property_id ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY i.created_at DESC LIMIT 500`, args);
   return (
     <>

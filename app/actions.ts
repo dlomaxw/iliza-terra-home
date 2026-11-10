@@ -38,6 +38,6 @@ export async function submitInquiry(_: FormState, f: FormData): Promise<FormStat
 export async function subscribe(_: FormState, f: FormData): Promise<FormState> {
   const email = str(f, "email", 160).toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Enter a valid email." };
-  await run("INSERT OR IGNORE INTO subscribers (email) VALUES (?)", [email]);
+  await run("INSERT INTO subscribers (email) VALUES (?) ON CONFLICT (email) DO NOTHING", [email]);
   return { ok: true, message: "Subscribed — we'll send you new opportunities." };
 }

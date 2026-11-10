@@ -2,7 +2,7 @@
 
 A real-estate, land, insurance and investment website for **Iliza Terra Homes (Kigali, Rwanda)**. It has a full admin dashboard and Rwanda-focused SEO.
 
-Built with Next.js 16, React 19, Tailwind CSS 4 and SQLite/libSQL. Brand colours (green, orange, blue and white) and the logo come from the company flyer.
+Built with Next.js 16, React 19, Tailwind CSS 4 and Postgres (Vercel / Neon). Brand colours (green, orange, blue and white) and the logo come from the company flyer.
 
 ---
 
@@ -48,7 +48,7 @@ Also included: a floating WhatsApp button, opportunity-alert newsletter signup, 
 ```bash
 npm install
 cp .env.example .env.local     # then edit the values
-npm run dev                    # open http://localhost:3000 and http://localhost:3000/admin
+npm run dev                    # needs DATABASE_URL pointing to a Postgres database
 ```
 
 On first start the app creates the database, the first admin account (from `ADMIN_EMAIL` / `ADMIN_PASSWORD`), 8 sample listings and 3 articles.
@@ -58,22 +58,18 @@ On first start the app creates the database, the first admin account (from `ADMI
 
 ## Deploy
 
-### Option A — Vercel + Turso (recommended, free tiers available)
-1. Push this folder to a GitHub repository.
-2. Create a database at **turso.tech** and copy its URL (`libsql://…`) and auth token.
-3. In **vercel.com**, import the repository and add these environment variables:
-   - `SITE_URL` = `https://www.yourdomain.rw` (or `.com`)
-   - `DATABASE_URL`, `DATABASE_AUTH_TOKEN` (from Turso)
-   - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `SESSION_SECRET` (a long random string)
-   - Optional: create a **Vercel Blob** store to hold photos (it adds `BLOB_READ_WRITE_TOKEN` automatically). Without it, photos are stored in the database.
-4. Deploy, then connect your domain under Project → Domains.
+### Option A — Vercel + Vercel Postgres (Neon) — current setup
+1. Import the GitHub repository into Vercel.
+2. In the project's **Storage** tab, create or connect a Postgres database (Neon or Prisma Postgres). This sets `DATABASE_URL` / `POSTGRES_URL` automatically.
+3. Add these environment variables: `SITE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `SESSION_SECRET`.
+4. Optional: create a **Blob** store in Storage for photos (it sets `BLOB_READ_WRITE_TOKEN`). Without it, photos are stored in the database.
+5. Deploy. The tables, the first admin account and the sample content are created automatically on the first request.
 
-### Option B — Any Node.js host / VPS (e.g. a Rwandan host with Node support)
+### Option B — Any Node.js host / VPS
+Point `DATABASE_URL` at any Postgres 13+ database, then run:
 ```bash
-npm install && npm run build
-DATABASE_URL=file:./data/iliza.db SITE_URL=https://yourdomain.rw SESSION_SECRET=... npm start
+npm install && npm run build && npm start
 ```
-Keep the `data/` folder backed up — it holds the database and uploaded photos.
 
 ### Optional: enquiry emails
 Add `RESEND_API_KEY` (from resend.com) and `NOTIFY_FROM`. Each new enquiry will then be emailed to the address set in **Site settings**.

@@ -14,8 +14,8 @@ export async function saveImage(file: File): Promise<string> {
     const blob = await put(`properties/${name}.webp`, out, { access: "public", contentType: "image/webp", addRandomSuffix: true });
     return blob.url;
   }
-  const r = await run("INSERT INTO media (mime, data) VALUES (?, ?)", ["image/webp", out]);
-  return `/media/${Number(r.lastInsertRowid)}`;
+  const r = await run("INSERT INTO media (mime, data) VALUES (?, ?) RETURNING id", ["image/webp", out]);
+  return `/media/${r.id}`;
 }
 
 export async function saveImages(files: File[]) {

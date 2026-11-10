@@ -22,7 +22,7 @@ export async function listProperties(f: PropertyFilter = {}) {
   if (f.category) { where.push("category = ?"); args.push(f.category); }
   if (f.district) { where.push("district = ?"); args.push(f.district); }
   if (f.districts?.length) { where.push(`district IN (${f.districts.map(() => "?").join(",")})`); args.push(...f.districts); }
-  if (f.q) { where.push("(title LIKE ? OR area LIKE ? OR district LIKE ? OR description LIKE ?)"); const like = `%${f.q}%`; args.push(like, like, like, like); }
+  if (f.q) { where.push("(title ILIKE ? OR area ILIKE ? OR district ILIKE ? OR description ILIKE ?)"); const like = `%${f.q}%`; args.push(like, like, like, like); }
   if (f.beds) { where.push("bedrooms >= ?"); args.push(f.beds); }
   // Price filters are in USD; RWF prices are converted using the admin-set rate.
   const s = await getSettings();

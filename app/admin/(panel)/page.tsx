@@ -12,7 +12,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     one("SELECT COUNT(*) n FROM properties WHERE status='published'"),
     one("SELECT COUNT(*) n FROM properties WHERE status='draft'"),
     one("SELECT COUNT(*) n FROM inquiries WHERE status='new'"),
-    one("SELECT COUNT(*) n FROM inquiries WHERE created_at >= datetime('now','-30 days')"),
+    one("SELECT COUNT(*) n FROM inquiries WHERE created_at >= ago_txt(30)"),
     one("SELECT COUNT(*) n FROM posts WHERE status='published'"),
     one("SELECT COALESCE(SUM(views),0) n FROM properties"),
     one("SELECT COUNT(*) n FROM subscribers"),

@@ -63,10 +63,10 @@ export async function saveProperty(_: AState, f: FormData): Promise<AState> {
   const cols = "title, slug, listing_type, category, district, area, price, currency, price_period, bedrooms, bathrooms, size_sqm, plot_sqm, upi, description, features, images, video_url, lat, lng, featured, status, meta_title, meta_description";
   let newId = id;
   if (id) {
-    await run(`UPDATE properties SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, is_sample = 0, updated_at = datetime('now') WHERE id = ?`, [...vals, id]);
+    await run(`UPDATE properties SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, is_sample = 0, updated_at = now_txt() WHERE id = ?`, [...vals, id]);
   } else {
-    const r = await run(`INSERT INTO properties (${cols}) VALUES (${cols.split(", ").map(() => "?").join(",")})`, vals);
-    newId = Number(r.lastInsertRowid);
+    const r = await run(`INSERT INTO properties (${cols}) VALUES (${cols.split(", ").map(() => "?").join(",")}) RETURNING id`, vals);
+    newId = r.id;
   }
   refreshPublic();
   redirect(`/admin/properties/${newId}?saved=1`);
@@ -83,7 +83,7 @@ export async function quickPropertyStatus(f: FormData) {
   await requireUser();
   const field = str(f, "field");
   if (field === "featured") await run("UPDATE properties SET featured = 1 - featured WHERE id = ?", [Number(f.get("id"))]);
-  if (field === "status") await run("UPDATE properties SET status = ?, updated_at = datetime('now') WHERE id = ?", [str(f, "value"), Number(f.get("id"))]);
+  if (field === "status") await run("UPDATE properties SET status = ?, updated_at = now_txt() WHERE id = ?", [str(f, "value"), Number(f.get("id"))]);
   refreshPublic();
   revalidatePath("/admin/properties");
 }
@@ -104,10 +104,10 @@ export async function savePost(_: AState, f: FormData): Promise<AState> {
   const vals = [title, slug, str(f, "excerpt"), str(f, "content"), cover, str(f, "category") || "Guides", str(f, "status") || "published", str(f, "meta_title"), str(f, "meta_description")];
   let newId = id;
   if (id) {
-    await run("UPDATE posts SET title=?, slug=?, excerpt=?, content=?, cover=?, category=?, status=?, meta_title=?, meta_description=?, is_sample=0, updated_at=datetime('now') WHERE id=?", [...vals, id]);
+    await run("UPDATE posts SET title=?, slug=?, excerpt=?, content=?, cover=?, category=?, status=?, meta_title=?, meta_description=?, is_sample=0, updated_at=now_txt() WHERE id=?", [...vals, id]);
   } else {
-    const r = await run("INSERT INTO posts (title, slug, excerpt, content, cover, category, status, meta_title, meta_description) VALUES (?,?,?,?,?,?,?,?,?)", vals);
-    newId = Number(r.lastInsertRowid);
+    const r = await run("INSERT INTO posts (title, slug, excerpt, content, cover, category, status, meta_title, meta_description) VALUES (?,?,?,?,?,?,?,?,?) RETURNING id", vals);
+    newId = r.id;
   }
   refreshPublic();
   redirect(`/admin/posts/${newId}?saved=1`);
